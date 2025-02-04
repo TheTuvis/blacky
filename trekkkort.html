@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,10 +11,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh; 
-            background-color: green; 
+            height: 100vh;
+            background-color: green;
             position: relative;
         }
+
         img {
             max-width: 100%;
             height: auto;
@@ -26,7 +28,7 @@
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            gap: 10px; 
+            gap: 10px;
         }
 
         button {
@@ -53,75 +55,131 @@
         }
     </style>
 </head>
+
 <body>
 
-    <div class="score-container">
-        Din score: <span id="score">0</span>
-    </div>
+
 
     <div class="button-container">
         <button id="higher">hit</button>
         <button id="lower">stand</button>
     </div>
-    <img id="kortbilde" src="">
+
+    <div class="dealkort">
+    </div>
+
+    <div class="spillkortt">
+
+
+    </div>
 
     <script>
         const bilde = document.getElementById("kortbilde");
-        const hitknapp= document.getElementById("higher");
+        const hitknapp = document.getElementById("higher");
         const standknapp = document.getElementById("lower");
         const scoreDisplay = document.getElementById("score");
+        const melding = document.getElementById("melding");
+        const dealerKortElm = document.querySelector(".dealkort");
+        const spillerKortElm = document.querySelector(".spillkort");
+        
+        let spillerKort = [];
+        let dealerKort = [];
+        let penger = document.getElementById("veridpenger");
+        let innskudd = document.getElementById("innskudd");
+        let i = 2;
+        let k = 2; 
     
-        let score = 0; 
-        let currentCardValue = 0;
-    
-        function trekkkort() {
+        function trekkKort() {
             const tall = Math.floor(Math.random() * 13) + 1;
             const sort = Math.floor(Math.random() * 4) + 1;
             let a = "";
     
-            if (sort === 1) {
-                a = "_of_diamonds.png";
-            } else if (sort === 2) {
-                a = "_of_spades.png";
-            } else if (sort === 3) {
-                a = "_of_hearts.png";
-            } else if (sort === 4) {
-                a = "_of_clubs.png";
-            }
+            if (sort === 1) a = "_of_diamonds.png";
+            else if (sort === 2) a = "_of_spades.png";
+            else if (sort === 3) a = "_of_hearts.png";
+            else a = "_of_clubs.png";
     
-            return { tall, image: `${tall}${a}` };
+            return { tall: tall > 10 ? 10 : tall, image: `${tall}${a}` };
+        }
+    
+        function beregnSum(kort) {
+            let sum = 0;
+            let ess = 0;
+    
+            for (let k of kort) {
+                sum += k.tall;
+                if (k.tall === 1) ess++;
+            }
+            while (ess > 0 && sum + 10 <= 21) {
+                sum += 10;
+                ess--;
+            }
+            return sum;
         }
     
         function startGame() {
-            const firstCard = trekkkort();
-            currentCardValue = firstCard.tall;
-            bilde.src = "kortstokk/" + firstCard.image;
+            spillerKort = [trekkKort(), trekkKort()];
+            dealerKort = [trekkKort(), trekkKort()];
+    
+            scoreDisplay.innerText = "Sum: " + beregnSum(spillerKort);
+            melding.innerText = "Spillet har startet!";
+    
+            dealerKortElm.innerHTML = "";
+            spillerKortElm.innerHTML = "";
+    
+            const kortdeal1 = document.createElement("img");
+            kortdeal1.src = "kortstokk/" + dealerKort[0].image;
+            dealerKortElm.appendChild(kortdeal1);
         }
     
-        function oppdaterScore() {3
-            scoreDisplay.textContent = score; 
-        }
-    
-       
-        standknapp.addEventListener("click", () => {
-            const nyttKort = trekkkort();
-            if (nyttKort.tall < currentCardValue) {
-                score += 1;
-                oppdaterScore();
-            } else if (nyttKort.tall === currentCardValue) {
-                score += 1;
-                oppdaterScore();
-            } else {
-                alert("Feil! Det var ikke lavere.");
-                score = 0;
-                oppdaterScore();
+        function hit() {
+            let nyttKort = trekkKort();
+            spillerKort.push(nyttKort);
+            let sum = beregnSum(spillerKort);
+            
+            const kortspillImg = document.createElement("img");
+            kortspillImg.src = "kortstokk/" + nyttKort.image;
+            spillerKortElm.appendChild(kortspillImg);
+            
+            scoreDisplay.innerText = "Sum: " + sum;
+            if (sum > 21) {
+                melding.innerText = "Du tapte!";
+                penger.innerText = Number(penger.innerText) - Number(innskudd.value);
             }
-            currentCardValue = nyttKort.tall;
-            bilde.src = "kortstokk/" + nyttKort.image;
-        });
+        }
     
-        startGame();
+        function dealer() {
+            let dealerSum = beregnSum(dealerKort);
+            
+            const kortdeal2 = document.createElement("img");
+            kortdeal2.src = "kortstokk/" + dealerKort[1].image;
+            dealerKortElm.appendChild(kortdeal2);
+            
+            while (dealerSum < 17) {
+                let nyttKort = trekkKort();
+                dealerKort.push(nyttKort);
+                
+                const kortdealImg = document.createElement("img");
+                kortdealImg.src = "kortstokk/" + nyttKort.image;
+                dealerKortElm.appendChild(kortdealImg);
+                
+                dealerSum = beregnSum(dealerKort);
+            }
+    
+            let spillerSum = beregnSum(spillerKort);
+            if (dealerSum > 21 || spillerSum > dealerSum) {
+                melding.innerText = "Du vant!";
+                penger = penger + innskudd*2
+            } else if (dealerSum === spillerSum) {
+                melding.innerText = "Uavgjort!";
+            } else {
+                melding.innerText = "Huset vant!";
+                penger = penger - innskudd
+            }
+        }
+    
+        hitknapp.addEventListener("click", hit);
+        standknapp.addEventListener("click", dealer);
     </script>
-
 </body>
 </html>
