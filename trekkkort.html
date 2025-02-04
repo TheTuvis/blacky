@@ -60,15 +60,15 @@
     </div>
 
     <div class="button-container">
-        <button id="higher">Høyere</button>
-        <button id="lower">Lavere</button>
+        <button id="higher">hit</button>
+        <button id="lower">stand</button>
     </div>
     <img id="kortbilde" src="">
 
     <script>
         const bilde = document.getElementById("kortbilde");
-        const higherButton = document.getElementById("higher");
-        const lowerButton = document.getElementById("lower");
+        const hitknapp= document.getElementById("higher");
+        const standknapp = document.getElementById("lower");
         const scoreDisplay = document.getElementById("score");
     
         let score = 0; 
@@ -98,28 +98,12 @@
             bilde.src = "kortstokk/" + firstCard.image;
         }
     
-        function oppdaterScore() {
+        function oppdaterScore() {3
             scoreDisplay.textContent = score; 
         }
     
-        higherButton.addEventListener("click", () => {
-            const nyttKort = trekkkort();
-            if (nyttKort.tall > currentCardValue) {
-                score += 1; 
-                oppdaterScore();
-            } else if (nyttKort.tall === currentCardValue) {
-                score += 1;
-                oppdaterScore();
-            } else {
-                alert("Feil! Det var ikke høyere.");
-                score = 0; 
-                oppdaterScore();
-            }
-            currentCardValue = nyttKort.tall;
-            bilde.src = "kortstokk/" + nyttKort.image;
-        });
-    
-        lowerButton.addEventListener("click", () => {
+       
+        standknapp.addEventListener("click", () => {
             const nyttKort = trekkkort();
             if (nyttKort.tall < currentCardValue) {
                 score += 1;
