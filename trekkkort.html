@@ -142,7 +142,7 @@
 
             if (sum > 21) {
                 document.getElementById("melding").innerText = "Du tapte!";
-                penger -= 10; // F.eks. tap av 10 enheter
+                penger -= 10; 
             }
         }
 
@@ -174,12 +174,12 @@
 
             if (dealerSum > 21 || spillerSum > dealerSum) {
                 meldingElement.innerText = "Du vant!";
-                penger += 20; // Eksempel: gevinst på 20 enheter
+                penger += 20;
             } else if (dealerSum === spillerSum) {
                 meldingElement.innerText = "Uavgjort!";
             } else {
                 meldingElement.innerText = "Huset vant!";
-                penger -= 10; // Tap på 10 enheter
+                penger -= 10; 
             }
         }
     </script>
