@@ -15,6 +15,7 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
         }
 
         .money-box {
@@ -25,7 +26,6 @@
             padding: 20px;
             border: 3px solid black;
             border-radius: 10px;
-            font-family: Arial, sans-serif;
             font-size: 24px;
             font-weight: bold;
             width: 200px;
@@ -56,9 +56,9 @@
             gap: 10px;
         }
 
-        .hitbtn, .standbtn {
+        .hitbtn, .standbtn, .restartbtn {
             width: 150px;
-            height: 150px;
+            height: 70px;
             border: 2px solid black;
             border-radius: 15px;
             cursor: pointer;
@@ -67,6 +67,7 @@
 
         .hitbtn { background-color: rgba(150, 30, 30, 0.7); }
         .standbtn { background-color: rgba(44, 98, 160, 0.7); }
+        .restartbtn { background-color: rgba(30, 150, 30, 0.7); }
 
         .score-container {
             position: absolute;
@@ -77,9 +78,45 @@
             padding: 10px 20px;
             border: 3px solid black;
             border-radius: 10px;
-            font-family: Arial, sans-serif;
             font-size: 20px;
             font-weight: bold;
+        }
+
+        .kort-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+           
+            padding: 15px;
+            border: 3px solid black;
+            border-radius: 15px;
+        }
+
+        .dealkort, .spillkortt {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .dealkort img, .spillkortt img {
+            width: 120px;
+            height: auto;
+        }
+
+        .dealkort {
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .spillkortt {
+            justify-content: center;
         }
     </style>
 </head>
@@ -88,28 +125,35 @@
 
     <div class="input-container" id="inputContainer">
         <input type="number" id="verdiPenger" placeholder="Sett inn penger">
-        <button onclick="settPenger()">OK</button>3
+        <button onclick="settPenger()">OK</button>
     </div>
 
     <div class="button-container">
         <button id="higher" class="hitbtn">Hit</button>
         <button id="lower" class="standbtn">Stand</button>
+        <button onclick="startSpill()" class="restartbtn">Restart</button>
     </div>
 
-    <div class="dealkort"></div>
-    <div class="spillkortt"></div>
+    <div class="kort-container">
+        <div class="dealkort"></div>
+        <div class="spillkortt"></div>
+    </div>
 
     <div id="melding" class="score-container">Velkommen!</div>
 
     <script>
         let penger = 0;
+        let spillerKort = [];
+        let dealerKort = [];
+        const dealerKortElm = document.querySelector(".dealkort");
+        const spillerKortElm = document.querySelector(".spillkortt");
 
         function settPenger() {
-            const inputElement = document.getElementById("verdiPenger");
-            penger = Number(inputElement.value);
+            penger = Number(document.getElementById("verdiPenger").value);
             if (penger > 0) {
                 document.getElementById("inputContainer").style.display = "none";
                 oppdaterPenger();
+                startSpill();
             } else {
                 alert("Du må skrive inn en gyldig sum!");
             }
@@ -119,19 +163,37 @@
             document.getElementById("moneyBox").innerText = "Penger: " + penger;
         }
 
-        document.getElementById("higher").addEventListener("click", hit);
-        document.getElementById("lower").addEventListener("click", dealer);
+        function startSpill() {
+            spillerKort = [];
+            dealerKort = [];
+            spillerKortElm.innerHTML = "";
+            dealerKortElm.innerHTML = "";
 
-        let spillerKort = [];
-        let dealerKort = [];
-        const dealerKortElm = document.querySelector(".dealkort");
-        const spillerKortElm = document.querySelector(".spillkortt");
+            leggTilKort(spillerKort, spillerKortElm);
+            leggTilKort(spillerKort, spillerKortElm);
+
+            leggTilKort(dealerKort, dealerKortElm);
+
+            oppdaterMelding();
+        }
+
+        function leggTilKort(kortArray, container) {
+            let nyttKort = trekkKort();
+            kortArray.push(nyttKort);
+            const kortImg = document.createElement("img");
+            kortImg.src = "kortstokk/" + nyttKort.image;
+            container.appendChild(kortImg);
+        }
+
+        function oppdaterMelding() {
+            let sum = beregnSum(spillerKort);
+            document.getElementById("melding").innerText = "Sum: " + sum;
+        }
 
         function trekkKort() {
             const tall = Math.floor(Math.random() * 13) + 1;
-            const sort = Math.floor(Math.random() * 4) + 1;
-            let a = ["_of_diamonds.png", "_of_spades.png", "_of_hearts.png", "_of_clubs.png"][sort - 1];
-            return { tall: tall > 10 ? 10 : tall, image: `${tall}${a}` };
+            const sort = ["diamonds", "spades", "hearts", "clubs"][Math.floor(Math.random() * 4)];
+            return { tall: Math.min(tall, 10), image: `${tall}_of_${sort}.png` };
         }
 
         function beregnSum(kort) {
@@ -149,18 +211,9 @@
         }
 
         function hit() {
-            if (penger <= 0) {
-                alert("Du har ikke nok penger! Start på nytt.");
-                return;
-            }
-            let nyttKort = trekkKort();
-            spillerKort.push(nyttKort);
-            let sum = beregnSum(spillerKort);
-            const kortspillImg = document.createElement("img");
-            kortspillImg.src = "kortstokk/" + nyttKort.image;
-            spillerKortElm.appendChild(kortspillImg);
-            document.getElementById("melding").innerText = "Sum: " + sum;
-            if (sum > 21) {
+            leggTilKort(spillerKort, spillerKortElm);
+            oppdaterMelding();
+            if (beregnSum(spillerKort) > 21) {
                 document.getElementById("melding").innerText = "Du tapte!";
                 penger -= 10;
                 oppdaterPenger();
@@ -168,19 +221,12 @@
         }
 
         function dealer() {
-            if (penger <= 0) {
-                alert("Du har ikke nok penger! Start på nytt.");
-                return;
-            }
             let dealerSum = beregnSum(dealerKort);
             while (dealerSum < 17) {
-                let nyttKort = trekkKort();
-                dealerKort.push(nyttKort);
-                const kortdealImg = document.createElement("img");
-                kortdealImg.src = "kortstokk/" + nyttKort.image;
-                dealerKortElm.appendChild(kortdealImg);
+                leggTilKort(dealerKort, dealerKortElm);
                 dealerSum = beregnSum(dealerKort);
             }
+
             let spillerSum = beregnSum(spillerKort);
             if (dealerSum > 21 || spillerSum > dealerSum) {
                 document.getElementById("melding").innerText = "Du vant!";
@@ -193,6 +239,9 @@
             }
             oppdaterPenger();
         }
+
+        document.getElementById("higher").addEventListener("click", hit);
+        document.getElementById("lower").addEventListener("click", dealer);
     </script>
 </body>
 </html>
